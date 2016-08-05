@@ -299,49 +299,9 @@ tlsf.hは動的メモリ管理を用いるアプリケーションからイン�
 下のようなパッチをあてる．
 
 [source,patch]
+.'patch -c tlsf.c < tlsh.patch'
 ----
-*** tlsf.c.orig Wed Sep 16 16:40:39 2009
---- tlsf.c Wed Sep 16 16:45:10 2009
-***************
-*** 76,82 ****
-  #if TLSF_USE_LOCKS
-! #include "target.h"
-  #else
-  #define TLSF_CREATE_LOCK(_unused_)   do{}while(0)
-  #define TLSF_DESTROY_LOCK(_unused_)  do{}while(0)
---- 76,88 ----
-  #if TLSF_USE_LOCKS
-! #include "kernel.h"
-! #include "kernel_cfg.h"
-! #define TLSF_MLOCK_T ID
-! #define TLSF_CREATE_LOCK(lock)   (*lock = TLSF_SEM)
-! #define TLSF_DESTROY_LOCK(lock)  ini_sem(*lock)
-! #define TLSF_ACQUIRE_LOCK(lock)  wai_sem(*lock)
-! #define TLSF_RELEASE_LOCK(lock)  sig_sem(*lock)
-  #else
-  #define TLSF_CREATE_LOCK(_unused_)   do{}while(0)
-  #define TLSF_DESTROY_LOCK(_unused_)  do{}while(0)
-***************
-*** 169,176 ****
-  #ifdef USE_PRINTF
-  #include <stdio.h>
-! # define PRINT_MSG(fmt, args...) printf(fmt, ## args)
-! # define ERROR_MSG(fmt, args...) printf(fmt, ## args)
-  #else
-  # if !defined(PRINT_MSG)
-  #  define PRINT_MSG(fmt, args...)
---- 175,184 ----
-  #ifdef USE_PRINTF
-  #include <stdio.h>
-! #include <t_stddef.h>
-! #include <t_syslog.h>
-! # define PRINT_MSG(fmt, args...) syslog(LOG_ERROR, fmt, ## ar
-gs)
-! # define ERROR_MSG(fmt, args...) syslog(LOG_ERROR, fmt, ## ar
-gs)
-  #else
-  # if !defined(PRINT_MSG)
-  #  define PRINT_MSG(fmt, args...)
+include::tlsf.patch[]
 ----
 
 このパッチは，tlsf.cに以下の修正を加えている．
